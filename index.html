@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phone Number Validator</title>
+  <!-- Include libphonenumber-js via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.9.48/libphonenumber-js.min.js" integrity="sha512-GIZ4zFTQO5ZAL0lgOQRlwCTAHbfCT4mK1nZizNZM3UPYJMlGo6U5AvDV5MTmXtmAgi5bPT3mYxPJ8N+ZV5rHhA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    #phone-number-tool {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+      max-width: 400px;
+      background-color: #fff;
+    }
+    #phone-number-tool input, #phone-number-tool select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    #phone-number-tool button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #phone-number-tool button:hover {
+      background-color: #218838;
+    }
+    #validation-result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="phone-number-tool">
+    <h2>Phone Number Validator</h2>
+    <input type="text" id="phone-input" placeholder="Enter phone number" />
+    <select id="country-select">
+      <option value="US">United States</option>
+      <option value="GB">United Kingdom</option>
+      <option value="CA">Canada</option>
+      <option value="AU">Australia</option>
+      <option value="DE">Germany</option>
+      <option value="FR">France</option>
+      <!-- Add more countries as needed -->
+    </select>
+    <button id="validate-button">Validate</button>
+    <div id="validation-result"></div>
+  </div>
+
+  <script>
+    document.getElementById('validate-button').addEventListener('click', () => {
+      const phoneInput = document.getElementById('phone-input').value;
+      const countryCode = document.getElementById('country-select').value;
+      const resultDiv = document.getElementById('validation-result');
+
+      try {
+        const phoneNumber = libphonenumber.parsePhoneNumber(phoneInput, countryCode);
+        if (phoneNumber.isValid()) {
+          resultDiv.innerHTML = `
+            <p style="color: green;"><strong>Valid Number!</strong></p>
+            <p>International Format: ${phoneNumber.formatInternational()}</p>
+            <p>National Format: ${phoneNumber.formatNational()}</p>
+          `;
+        } else {
+          resultDiv.innerHTML = `<p style="color: red;"><strong>Invalid phone number.</strong></p>`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${error.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
