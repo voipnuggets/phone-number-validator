@@ -1,99 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Phone Number Validator</title>
-  
-  <!-- Include libphonenumber-js via CDN first -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.10.25/libphonenumber-js.min.js"></script>
-  
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f0f0f0;
-      margin: 0;
-    }
-    #phone-number-tool {
-      border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 5px;
-      max-width: 400px;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    #phone-number-tool input, #phone-number-tool select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    #phone-number-tool button {
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-    }
-    #phone-number-tool button:hover {
-      background-color: #218838;
-    }
-    #validation-result {
-      margin-top: 20px;
-      word-wrap: break-word;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>libphonenumber Full Test Page</title>
+    <!-- Include libphonenumber from CDNJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.9.47/libphonenumber-js.min.js"></script>
+    <style>
+        input, button, div { margin: 10px; }
+        #countryCode {
+            width: 300px; /* Adjusted width to fit placeholder text */
+        }
+    </style>
 </head>
 <body>
-  <div id="phone-number-tool">
-    <h2>Phone Number Validator</h2>
-    <input type="text" id="phone-input" placeholder="Enter phone number" />
-    <select id="country-select">
-      <option value="US">United States</option>
-      <option value="GB">United Kingdom</option>
-      <option value="CA">Canada</option>
-      <option value="AU">Australia</option>
-      <option value="DE">Germany</option>
-      <option value="FR">France</option>
-      <!-- Add more countries as needed -->
-    </select>
-    <button id="validate-button">Validate</button>
-    <div id="validation-result"></div>
-  </div>
+    <h2>Test libphonenumber Functionalities with One Click</h2>
 
-  <script>
-    document.getElementById('validate-button').addEventListener('click', () => {
-      const phoneInput = document.getElementById('phone-input').value.trim();
-      const countryCode = document.getElementById('country-select').value;
-      const resultDiv = document.getElementById('validation-result');
+    <input type="text" id="phoneNumber" placeholder="Enter phone number">
+    <input type="text" id="countryCode" placeholder="Enter country code (e.g., 'US')">
+    <div>
+        <button onclick="runAllTests()">Run All Tests</button>
+    </div>
 
-      if (!phoneInput) {
-        resultDiv.innerHTML = `<p style="color: red;"><strong>Please enter a phone number.</strong></p>`;
-        return;
-      }
+    <div id="output"></div>
 
-      try {
-        // Access libphonenumber from the global window object
-        const phoneNumber = libphonenumber.parsePhoneNumber(phoneInput, countryCode);
-        if (phoneNumber.isValid()) {
-          resultDiv.innerHTML = `
-            <p style="color: green;"><strong>Valid Number!</strong></p>
-            <p>International Format: ${phoneNumber.formatInternational()}</p>
-            <p>National Format: ${phoneNumber.formatNational()}</p>
-          `;
-        } else {
-          resultDiv.innerHTML = `<p style="color: red;"><strong>Invalid phone number.</strong></p>`;
+    <script>
+        function runAllTests() {
+            const inputNumber = document.getElementById("phoneNumber").value.trim();
+            const countryCode = document.getElementById("countryCode").value.trim().toUpperCase();
+            const outputDiv = document.getElementById("output");
+            
+            // Clear the output first
+            outputDiv.innerHTML = "";
+
+            try {
+                // Check if inputNumber is provided
+                if (!inputNumber) {
+                    outputDiv.innerHTML = `<strong>Error:</strong> Please enter a phone number.`;
+                    return;
+                }
+
+                // Parsing and full validation
+                const phoneUtil = libphonenumber.parsePhoneNumber(inputNumber, countryCode);
+                
+                let output = `<strong>Phone Number Analysis:</strong><br>`;
+                
+                // Validate Number
+                output += phoneUtil.isValid() ? "✅ Valid phone number<br>" : "❌ Invalid phone number<br>";
+
+                // Get Number Type
+                const type = phoneUtil.getType();
+                output += `Number Type: ${type}<br>`;
+
+                // Is Possible Number
+                const possible = phoneUtil.isPossible();
+                output += possible ? "Possible Number: ✅<br>" : "Possible Number: ❌<br>";
+
+                // Format International and National Numbers
+                const formattedInternational = phoneUtil.formatInternational();
+                const formattedNational = phoneUtil.formatNational();
+                output += `Formatted (International): ${formattedInternational}<br>`;
+                output += `Formatted (National): ${formattedNational}<br>`;
+
+                // Get Example Number (only if countryCode is provided)
+                if (countryCode) {
+                    try {
+                        const exampleNumber = libphonenumber.getExampleNumber(countryCode);
+                        output += `Example Number for ${countryCode}: ${exampleNumber.formatInternational()}<br>`;
+                    } catch (error) {
+                        output += `Error getting example number for ${countryCode}: ${error.message}<br>`;
+                    }
+                } else {
+                    output += `Example Number: Please enter a valid country code to get an example number.<br>`;
+                }
+
+                // Find Numbers in Text
+                try {
+                    const numbersFound = libphonenumber.findNumbers(inputNumber, 'ANY');
+                    if (numbersFound.length > 0) {
+                        output += `Numbers Found in Input Text: ${numbersFound.map(num => num.rawInput).join(", ")}<br>`;
+                    } else {
+                        output += "No numbers found in input text<br>";
+                    }
+                } catch (error) {
+                    output += `Error finding numbers in text: ${error.message}<br>`;
+                }
+
+                // Set the output to the div
+                outputDiv.innerHTML = output;
+
+            } catch (error) {
+                outputDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
         }
-      } catch (error) {
-        resultDiv.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${error.message}</p>`;
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
