@@ -3,33 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>libphonenumber Full Test Page</title>
+    <title>Phone Number Validator</title>
     <!-- Include libphonenumber from CDNJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/libphonenumber-js/1.9.47/libphonenumber-js.min.js"></script>
     <style>
-        input, button, div { margin: 10px; }
-        #countryCode {
-            width: 300px; /* Adjusted width to fit placeholder text */
+        /* Base Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #181818;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 40px 30px;
+            background: #333;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            font-weight: normal;
+            color: #f0f0f0;
+            margin-bottom: 40px;
+            font-size: 28px;
+        }
+
+        .input-field {
+            width: 80%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #555;
+            border-radius: 25px;
+            text-align: center;
+            font-size: 16px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: #444;
+            color: #f0f0f0;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .button {
+            padding: 12px 30px;
+            margin-top: 20px;
+            background-color: #5555ff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #4a4aff;
+        }
+
+        .darkmode-toggle-wrapper {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .darkmode-toggle-label {
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .darkmode-toggle {
+            appearance: none;
+            width: 50px;
+            height: 25px;
+            background: #555;
+            border-radius: 25px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .darkmode-toggle:checked {
+            background: #4caf50;
+        }
+
+        .darkmode-toggle::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .darkmode-toggle:checked::before {
+            transform: translateX(25px);
+        }
+
+        #output {
+            text-align: left;
+            margin-top: 25px;
+            padding: 15px;
+            background: #444;
+            border-radius: 10px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            color: #f0f0f0;
+        }
+
+        /* Light Mode Styles */
+        .light-mode {
+            background-color: #f0f0f0;
+            color: #181818;
+        }
+
+        .light-mode .container {
+            background-color: #fff;
+            color: #181818;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .light-mode .input-field {
+            border-color: #ccc;
+            background: #f0f0f0;
+            color: #181818;
+        }
+
+        .light-mode .button {
+            background-color: #357ae8;
+        }
+
+        .light-mode #output {
+            background: #e9ecef;
+            color: #181818;
         }
     </style>
 </head>
 <body>
-    <h2>Test libphonenumber Functionalities with One Click</h2>
-
-    <input type="text" id="phoneNumber" placeholder="Enter phone number">
-    <input type="text" id="countryCode" placeholder="Enter country code (e.g., 'US')">
-    <div>
-        <button onclick="runAllTests()">Run All Tests</button>
+    <div class="container">
+        <h1>Phone Number Validator</h1>
+        <input type="text" id="phoneNumber" class="input-field" placeholder="Enter phone number">
+        <input type="text" id="countryCode" class="input-field" placeholder="Enter country code (e.g., 'US')">
+        <button class="button" onclick="runAllTests()">Run All Tests</button>
+        <div class="darkmode-toggle-wrapper">
+            <span class="darkmode-toggle-label">Light Mode</span>
+            <input type="checkbox" class="darkmode-toggle" id="darkmodeToggle" onclick="toggleDarkMode()">
+        </div>
+        <div id="output"></div>
     </div>
-
-    <div id="output"></div>
 
     <script>
         function runAllTests() {
             const inputNumber = document.getElementById("phoneNumber").value.trim();
             const countryCode = document.getElementById("countryCode").value.trim().toUpperCase();
             const outputDiv = document.getElementById("output");
-            
+
             // Clear the output first
             outputDiv.innerHTML = "";
 
@@ -40,11 +180,22 @@
                     return;
                 }
 
-                // Parsing and full validation
-                const phoneUtil = libphonenumber.parsePhoneNumber(inputNumber, countryCode);
-                
-                let output = `<strong>Phone Number Analysis:</strong><br>`;
-                
+                // Determine if country code is needed
+                let phoneUtil;
+                if (inputNumber.startsWith('+')) {
+                    // If the number starts with '+' we assume it's in international format, no country code needed
+                    phoneUtil = libphonenumber.parsePhoneNumber(inputNumber);
+                } else {
+                    // If the number does not start with '+', a country code is needed
+                    if (!countryCode) {
+                        outputDiv.innerHTML = `<strong>Error:</strong> Please enter a valid country code if the number is not in international format.`;
+                        return;
+                    }
+                    phoneUtil = libphonenumber.parsePhoneNumber(inputNumber, countryCode);
+                }
+
+                let output = `<strong>Phone Number Analysis:</strong><br><br>`;
+
                 // Validate Number
                 output += phoneUtil.isValid() ? "✅ Valid phone number<br>" : "❌ Invalid phone number<br>";
 
@@ -62,28 +213,25 @@
                 output += `Formatted (International): ${formattedInternational}<br>`;
                 output += `Formatted (National): ${formattedNational}<br>`;
 
-                // Get Example Number (only if countryCode is provided)
-                if (countryCode) {
-                    try {
-                        const exampleNumber = libphonenumber.getExampleNumber(countryCode);
-                        output += `Example Number for ${countryCode}: ${exampleNumber.formatInternational()}<br>`;
-                    } catch (error) {
-                        output += `Error getting example number for ${countryCode}: ${error.message}<br>`;
-                    }
-                } else {
-                    output += `Example Number: Please enter a valid country code to get an example number.<br>`;
+                // Add Carrier Information
+                if (libphonenumber.PhoneNumberToCarrierMapper) {
+                    const carrierMapper = libphonenumber.PhoneNumberToCarrierMapper.getInstance();
+                    const carrier = carrierMapper.getNameForNumber(phoneUtil, 'en');
+                    output += `Carrier Information: ${carrier || 'Unknown'}<br>`;
                 }
 
-                // Find Numbers in Text
-                try {
-                    const numbersFound = libphonenumber.findNumbers(inputNumber, 'ANY');
-                    if (numbersFound.length > 0) {
-                        output += `Numbers Found in Input Text: ${numbersFound.map(num => num.rawInput).join(", ")}<br>`;
-                    } else {
-                        output += "No numbers found in input text<br>";
-                    }
-                } catch (error) {
-                    output += `Error finding numbers in text: ${error.message}<br>`;
+                // Add Geographical Information
+                if (libphonenumber.PhoneNumberOfflineGeocoder) {
+                    const geocoder = libphonenumber.PhoneNumberOfflineGeocoder.getInstance();
+                    const geoInfo = geocoder.getDescriptionForNumber(phoneUtil, 'en');
+                    output += `Geographical Information: ${geoInfo || 'Unknown'}<br>`;
+                }
+
+                // Add Time Zone Information
+                if (libphonenumber.PhoneNumberToTimeZonesMapper) {
+                    const timeZoneMapper = libphonenumber.PhoneNumberToTimeZonesMapper.getInstance();
+                    const timeZones = timeZoneMapper.getTimeZonesForNumber(phoneUtil);
+                    output += `Time Zone(s): ${timeZones.length > 0 ? timeZones.join(', ') : 'Unknown'}<br>`;
                 }
 
                 // Set the output to the div
@@ -91,6 +239,17 @@
 
             } catch (error) {
                 outputDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        function toggleDarkMode() {
+            const darkmodeToggle = document.getElementById('darkmodeToggle');
+            if (darkmodeToggle.checked) {
+                // Switch to light mode
+                document.body.classList.add('light-mode');
+            } else {
+                // Switch to dark mode
+                document.body.classList.remove('light-mode');
             }
         }
     </script>
